@@ -1,0 +1,38 @@
+{
+  "name": "Custom_ServiceNowVulnerableItems_CL",
+  "type": "Microsoft.OperationalInsights/workspaces/tables",
+  "apiVersion": "2022-10-01",
+  "location": "[parameters('location')]",
+  "kind": null,
+  "tags": {},
+  "properties": {
+    "schema": {
+      "name": "Custom_ServiceNowVulnerableItems_CL",
+      "columns": [
+        {
+          "name": "TimeGenerated",
+          "type": "datetime"
+        },
+        { "name": "number", "type": "string" },
+        { "name": "short_description", "type": "string" },
+        { "name": "state", "type": "string" },
+        { "name": "substate", "type": "dynamic" },
+        { "name": "risk_score", "type": "string" },
+        { "name": "first_found_dt_tm", "type": "datetime" },
+        { "name": "last_found_dt_tm", "type": "datetime" },
+        { "name": "assignment_group", "type": "dynamic" },
+        { "name": "assigned_to", "type": "dynamic" },
+        { "name": "cmdb_ci", "type": "string" },
+        { "name": "cmdb_ci_sys_id", "type": "string" },
+        { "name": "ip_address", "type": "string" },
+        { "name": "dns", "type": "string" },
+        { "name": "vulnerability", "type": "string" },
+        { "name": "sys_created_on", "type": "datetime" },
+        { "name": "sys_updated_on", "type": "datetime" },
+        { "name": "source", "type": "string" },
+        { "name": "mitigation_controls", "type": "dynamic" },
+        { "name": "sys_id", "type": "string" }
+      ]
+    }
+  }
+}

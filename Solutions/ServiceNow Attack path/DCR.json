@@ -1,0 +1,89 @@
+{
+  "name": "DCR_ServiceNowDevicesVul",
+  "apiVersion": "2021-09-01-preview",
+  "type": "Microsoft.Insights/dataCollectionRules",
+  "location": "[parameters('location')]",
+  "properties": {
+    "dataCollectionEndpointId": "[resourceId('Microsoft.Insights/dataCollectionEndpoints', variables('dataCollectionEndpointName'))]",
+    "streamDeclarations": {
+      "Custom-Custom_ServiceNowDevices_CL": {
+        "columns": [
+          {
+            "name": "TimeGenerated",
+            "type": "datetime"
+          },
+          { "name": "name", "type": "string" },
+          { "name": "host_name", "type": "dynamic" },
+          { "name": "ip_address", "type": "dynamic" },
+          { "name": "dns_domain", "type": "dynamic" },
+          { "name": "fqdn", "type": "dynamic" },
+          { "name": "os", "type": "string" },
+          { "name": "os_version", "type": "string" },
+          { "name": "cpu_type", "type": "dynamic" },
+          { "name": "ram", "type": "dynamic" },
+          { "name": "disk_space", "type": "dynamic" },
+          { "name": "manufacturer", "type": "dynamic" },
+          { "name": "model_id", "type": "string" },
+          { "name": "support_group", "type": "dynamic" },
+          { "name": "assigned_to", "type": "dynamic" },
+          { "name": "location", "type": "dynamic" },
+          { "name": "install_status", "type": "string" },
+          { "name": "sys_class_name", "type": "string" },
+          { "name": "sys_created_on", "type": "datetime" },
+          { "name": "sys_updated_on", "type": "datetime" },
+          { "name": "sys_id", "type": "string" },
+          { "name": "impacted_services", "type": "dynamic" }
+        ]
+      },
+      "Custom-Custom_ServiceNowVulnerableItems_CL": {
+        "columns": [
+          {
+            "name": "TimeGenerated",
+            "type": "datetime"
+          },
+          { "name": "number", "type": "string" },
+          { "name": "short_description", "type": "string" },
+          { "name": "state", "type": "string" },
+          { "name": "substate", "type": "dynamic" },
+          { "name": "risk_score", "type": "string" },
+          { "name": "first_found_dt_tm", "type": "datetime" },
+          { "name": "last_found_dt_tm", "type": "datetime" },
+          { "name": "assignment_group", "type": "dynamic" },
+          { "name": "assigned_to", "type": "dynamic" },
+          { "name": "cmdb_ci", "type": "string" },
+          { "name": "cmdb_ci_sys_id", "type": "string" },
+          { "name": "ip_address", "type": "string" },
+          { "name": "dns", "type": "string" },
+          { "name": "vulnerability", "type": "string" },
+          { "name": "sys_created_on", "type": "datetime" },
+          { "name": "sys_updated_on", "type": "datetime" },
+          { "name": "source", "type": "string" },
+          { "name": "mitigation_controls", "type": "dynamic" },
+          { "name": "sys_id", "type": "string" }
+        ]
+      }
+    },
+    "destinations": {
+      "logAnalytics": [
+        {
+          "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace'))]",
+          "name": "c0f113ab155943ed9113693effe1be5e"
+        }
+      ]
+    },
+    "dataFlows": [
+      {
+        "streams": ["Custom-Custom_ServiceNowDevices_CL"],
+        "destinations": ["c0f113ab155943ed9113693effe1be5e"],
+        "transformKql": "source | extend TimeGenerated = sys_updated_on",
+        "outputStream": "Custom-Custom_ServiceNowDevices_CL"
+      },
+      {
+        "streams": ["Custom-Custom_ServiceNowVulnerableItems_CL"],
+        "destinations": ["c0f113ab155943ed9113693effe1be5e"],
+        "transformKql": "source | extend TimeGenerated = sys_updated_on",
+        "outputStream": "Custom-Custom_ServiceNowVulnerableItems_CL"
+      }
+    ]
+  }
+}

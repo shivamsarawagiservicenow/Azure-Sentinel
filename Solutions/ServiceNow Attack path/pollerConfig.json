@@ -1,0 +1,34 @@
+{
+  "type": "Microsoft.SecurityInsights/dataConnectors",
+  "apiVersion": "2022-10-01-preview",
+  "name": "ServiceNowDevicesPolling",
+  "kind": "RestApiPoller",
+  "properties": {
+    "connectorDefinitionName": "ServiceNowCCPDefinition",
+    "dataType": "ServiceNow Devices API",
+    "dcrConfig": {
+      "streamName": "Custom-Custom_ServiceNowDevices_CL",
+      "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
+      "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
+    },
+    "auth": {
+      "type": "Basic",
+      "UserName": "[[parameters('username')]",
+      "Password": "[[parameters('password')]"
+    },
+    "request": {
+      "apiEndpoint": "[[concat('https://', parameters('instance'), '.service-now.com/api/sn_vul/attack_path/configuration_item')]",
+      "httpMethod": "GET",
+      "headers": {
+        "Accept": "application/json"
+      }
+    },
+    "paging": {
+      "pagingType": "LinkHeader",
+      "pageSize": 1000
+    },
+    "response": {
+      "eventsJsonPaths": ["$.result.results"]
+    }
+  }
+}

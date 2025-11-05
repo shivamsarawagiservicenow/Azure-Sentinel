@@ -1,0 +1,590 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workspace": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Log Analytics workspace where Microsoft Sentinel is deployed."
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "The location of the resources."
+      }
+    }
+  },
+  "variables": {
+    "_solutionName": "ServiceNow Attack Path Connector",
+    "_solutionVersion": "1.0.0",
+    "_solutionAuthor": "Microsoft",
+    "_packageIcon": "icon icon icon icon",
+    "_solutionId": "azureservicenow.attackpath-solution-v1",
+    "dataConnectorVersionConnectorDefinition": "1.0.0",
+    "dataConnectorVersionConnections": "1.0.0",
+    "_solutionTier": "Microsoft",
+    "dataCollectionEndpointName": "attackpathapi-vr",
+    "_dataConnectorContentIdConnectorDefinition": "ServiceNowConnectorDefinition",
+    "dataConnectorTemplateNameConnectorDefinition": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnectorDefinition')))]",
+    "_dataConnectorContentIdConnections": "ServiceNowTemplateConnections",
+    "dataConnectorTemplateNameConnections": "[concat(parameters('workspace'),'-dc-',uniquestring(variables('_dataConnectorContentIdConnections')))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
+      "apiVersion": "2023-04-01-preview",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('dataConnectorTemplateNameConnectorDefinition'), variables('dataConnectorVersionConnectorDefinition'))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
+      ],
+      "properties": {
+        "contentId": "[variables('_dataConnectorContentIdConnectorDefinition')]",
+        "displayName": "[concat(variables('_solutionName'), variables('dataConnectorTemplateNameConnectorDefinition'))]",
+        "contentKind": "DataConnector",
+        "mainTemplate": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "[variables('dataConnectorVersionConnectorDefinition')]",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition')))]",
+              "apiVersion": "2022-01-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+              "properties": {
+                "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectorDefinitions', variables('_dataConnectorContentIdConnectorDefinition'))]",
+                "contentId": "[variables('_dataConnectorContentIdConnectorDefinition')]",
+                "kind": "DataConnector",
+                "version": "[variables('dataConnectorVersionConnectorDefinition')]",
+                "source": {
+                  "sourceId": "[variables('_solutionId')]",
+                  "name": "[variables('_solutionName')]",
+                  "kind": "Solution"
+                },
+                "author": {
+                  "name": "[variables('_solutionAuthor')]"
+                },
+                "support": {
+                  "name": "[variables('_solutionAuthor')]",
+                  "tier": "[variables('_solutionTier')]"
+                },
+                "dependencies": {
+                  "criteria": [
+                    {
+                      "version": "[variables('dataConnectorVersionConnections')]",
+                      "contentId": "[variables('_dataConnectorContentIdConnections')]",
+                      "kind": "ResourcesDataConnector"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "DCR_ServiceNowDevicesVul",
+              "apiVersion": "2021-09-01-preview",
+              "type": "Microsoft.Insights/dataCollectionRules",
+              "location": "[parameters('location')]",
+              "properties": {
+                "dataCollectionEndpointId": "[resourceId('Microsoft.Insights/dataCollectionEndpoints', variables('dataCollectionEndpointName'))]",
+                "streamDeclarations": {
+                  "Custom-Custom_ServiceNowDevices_CL": {
+                    "columns": [
+                      {
+                        "name": "TimeGenerated",
+                        "type": "datetime"
+                      },
+                      { "name": "name", "type": "string" },
+                      { "name": "host_name", "type": "dynamic" },
+                      { "name": "ip_address", "type": "dynamic" },
+                      { "name": "dns_domain", "type": "dynamic" },
+                      { "name": "fqdn", "type": "dynamic" },
+                      { "name": "os", "type": "string" },
+                      { "name": "os_version", "type": "string" },
+                      { "name": "cpu_type", "type": "dynamic" },
+                      { "name": "ram", "type": "dynamic" },
+                      { "name": "disk_space", "type": "dynamic" },
+                      { "name": "manufacturer", "type": "dynamic" },
+                      { "name": "model_id", "type": "string" },
+                      { "name": "support_group", "type": "dynamic" },
+                      { "name": "assigned_to", "type": "dynamic" },
+                      { "name": "location", "type": "dynamic" },
+                      { "name": "install_status", "type": "string" },
+                      { "name": "sys_class_name", "type": "string" },
+                      { "name": "sys_created_on", "type": "datetime" },
+                      { "name": "sys_updated_on", "type": "datetime" },
+                      { "name": "sys_id", "type": "string" },
+                      { "name": "impacted_services", "type": "dynamic" }
+                    ]
+                  },
+                  "Custom-Custom_ServiceNowVulnerableItems_CL": {
+                    "columns": [
+                      {
+                        "name": "TimeGenerated",
+                        "type": "datetime"
+                      },
+                      { "name": "number", "type": "string" },
+                      { "name": "short_description", "type": "string" },
+                      { "name": "state", "type": "string" },
+                      { "name": "substate", "type": "dynamic" },
+                      { "name": "risk_score", "type": "string" },
+                      { "name": "first_found_dt_tm", "type": "datetime" },
+                      { "name": "last_found_dt_tm", "type": "datetime" },
+                      { "name": "assignment_group", "type": "dynamic" },
+                      { "name": "assigned_to", "type": "dynamic" },
+                      { "name": "cmdb_ci", "type": "string" },
+                      { "name": "cmdb_ci_sys_id", "type": "string" },
+                      { "name": "ip_address", "type": "string" },
+                      { "name": "dns", "type": "string" },
+                      { "name": "vulnerability", "type": "string" },
+                      { "name": "sys_created_on", "type": "datetime" },
+                      { "name": "sys_updated_on", "type": "datetime" },
+                      { "name": "source", "type": "string" },
+                      { "name": "mitigation_controls", "type": "dynamic" },
+                      { "name": "sys_id", "type": "string" }
+                    ]
+                  }
+                },
+                "destinations": {
+                  "logAnalytics": [
+                    {
+                      "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace'))]",
+                      "name": "c0f113ab155943ed9113693effe1be5e"
+                    }
+                  ]
+                },
+                "dataFlows": [
+                  {
+                    "streams": ["Custom-Custom_ServiceNowDevices_CL"],
+                    "destinations": ["c0f113ab155943ed9113693effe1be5e"],
+                    "transformKql": "source | extend TimeGenerated = sys_updated_on",
+                    "outputStream": "Custom-Custom_ServiceNowDevices_CL"
+                  },
+                  {
+                    "streams": ["Custom-Custom_ServiceNowVulnerableItems_CL"],
+                    "destinations": ["c0f113ab155943ed9113693effe1be5e"],
+                    "transformKql": "source | extend TimeGenerated = sys_updated_on",
+                    "outputStream": "Custom-Custom_ServiceNowVulnerableItems_CL"
+                  }
+                ]
+              }
+            },
+            {
+              "name": "Custom_ServiceNowDevices_CL",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "location": "[parameters('location')]",
+              "kind": null,
+              "tags": {},
+              "properties": {
+                "schema": {
+                  "name": "Custom_ServiceNowDevices_CL",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "datetime"
+                    },
+                    { "name": "name", "type": "string" },
+                    { "name": "host_name", "type": "dynamic" },
+                    { "name": "ip_address", "type": "dynamic" },
+                    { "name": "dns_domain", "type": "dynamic" },
+                    { "name": "fqdn", "type": "dynamic" },
+                    { "name": "os", "type": "string" },
+                    { "name": "os_version", "type": "string" },
+                    { "name": "cpu_type", "type": "dynamic" },
+                    { "name": "ram", "type": "dynamic" },
+                    { "name": "disk_space", "type": "dynamic" },
+                    { "name": "manufacturer", "type": "dynamic" },
+                    { "name": "model_id", "type": "string" },
+                    { "name": "support_group", "type": "dynamic" },
+                    { "name": "assigned_to", "type": "dynamic" },
+                    { "name": "location", "type": "dynamic" },
+                    { "name": "install_status", "type": "string" },
+                    { "name": "sys_class_name", "type": "string" },
+                    { "name": "sys_created_on", "type": "datetime" },
+                    { "name": "sys_updated_on", "type": "datetime" },
+                    { "name": "sys_id", "type": "string" },
+                    { "name": "impacted_services", "type": "dynamic" }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Custom_ServiceNowVulnerableItems_CL",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "location": "[parameters('location')]",
+              "kind": null,
+              "tags": {},
+              "properties": {
+                "schema": {
+                  "name": "Custom_ServiceNowVulnerableItems_CL",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "datetime"
+                    },
+                    { "name": "number", "type": "string" },
+                    { "name": "short_description", "type": "string" },
+                    { "name": "state", "type": "string" },
+                    { "name": "substate", "type": "dynamic" },
+                    { "name": "risk_score", "type": "string" },
+                    { "name": "first_found_dt_tm", "type": "datetime" },
+                    { "name": "last_found_dt_tm", "type": "datetime" },
+                    { "name": "assignment_group", "type": "dynamic" },
+                    { "name": "assigned_to", "type": "dynamic" },
+                    { "name": "cmdb_ci", "type": "string" },
+                    { "name": "cmdb_ci_sys_id", "type": "string" },
+                    { "name": "ip_address", "type": "string" },
+                    { "name": "dns", "type": "string" },
+                    { "name": "vulnerability", "type": "string" },
+                    { "name": "sys_created_on", "type": "datetime" },
+                    { "name": "sys_updated_on", "type": "datetime" },
+                    { "name": "source", "type": "string" },
+                    { "name": "mitigation_controls", "type": "dynamic" },
+                    { "name": "sys_id", "type": "string" }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "packageKind": "Solution",
+        "packageVersion": "[variables('_solutionVersion')]",
+        "packageName": "[variables('_solutionName')]",
+        "contentProductId": "[concat('azureservicenow.attackpath-solution-v1-dc-123-DataConnector-', variables('_dataConnectorContentIdConnectorDefinition'), '-', variables('dataConnectorVersionConnectorDefinition'))]",
+        "packageId": "[variables('_solutionId')]",
+        "contentSchemaVersion": "3.0.0",
+        "version": "[variables('_solutionVersion')]"
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/dataConnectorDefinitions",
+      "name": "[format('{0}/Microsoft.SecurityInsights/{1}', parameters('workspace'), 'ServiceNowConnectorDefinition')]",
+      "apiVersion": "2022-09-01-preview",
+      "location": "[parameters('location')]",
+      "kind": "Customizable",
+      "properties": {
+        "connectorUiConfig": {
+          "title": "ServiceNow Attack Path Connector",
+          "publisher": "Microsoft",
+          "descriptionMarkdown": "The ServiceNow Attack Path Connector ingests asset, vulnerability, and service data from your ServiceNow instance into Microsoft Sentinel.",
+          "graphQueries": [
+            {
+              "metricName": "Devices Received",
+              "legend": "Custom_ServiceNowDevices_CL",
+              "baseQuery": "Custom_ServiceNowDevices_CL"
+            },
+            {
+              "metricName": "Vulnerable Items Received",
+              "legend": "Custom_ServiceNowVulnerableItems_CL",
+              "baseQuery": "Custom_ServiceNowVulnerableItems_CL"
+            }
+          ],
+          "sampleQueries": [
+            {
+              "description": "Sample of ServiceNow Devices",
+              "query": "Custom_ServiceNowDevices_CL\n | sort by TimeGenerated desc"
+            },
+            {
+              "description": "Sample of ServiceNow Vulnerable Items",
+              "query": "Custom_ServiceNowVulnerableItems_CL\n | sort by TimeGenerated desc"
+            }
+          ],
+          "dataTypes": [
+            {
+              "name": "Custom_ServiceNowDevices_CL",
+              "lastDataReceivedQuery": "Custom_ServiceNowDevices_CL\n            | summarize Time = max(TimeGenerated)\n            | where isnotempty(Time)"
+            },
+            {
+              "name": "Custom_ServiceNowVulnerableItems_CL",
+              "lastDataReceivedQuery": "Custom_ServiceNowVulnerableItems_CL\n            | summarize Time = max(TimeGenerated)\n            | where isnotempty(Time)"
+            }
+          ],
+          "connectivityCriteria": [
+            {
+              "type": "HasDataConnectors"
+            }
+          ],
+          "availability": {
+            "isPreview": true
+          },
+          "permissions": {
+            "resourceProvider": [
+              {
+                "provider": "Microsoft.OperationalInsights/workspaces",
+                "permissionsDisplayText": "Read and Write permissions are required.",
+                "providerDisplayName": "Workspace",
+                "scope": "Workspace",
+                "requiredPermissions": {
+                  "write": true,
+                  "read": true,
+                  "delete": true
+                }
+              }
+            ],
+            "customs": [
+              {
+                "name": "ServiceNow Service Account",
+                "description": "A ServiceNow user account with read-only roles is required."
+              }
+            ]
+          },
+          "instructionSteps": [
+            {
+              "description": "Connect your ServiceNow instance to Microsoft Sentinel.",
+              "instructions": [
+                {
+                  "type": "DataConnectorsGrid",
+                  "parameters": {
+                    "mapping": [
+                      {
+                        "columnName": "ServiceNow Instance",
+                        "columnValue": "properties.request.apiEndpoint"
+                      }
+                    ],
+                    "menuItems": ["DeleteConnector"]
+                  }
+                },
+                {
+                  "type": "ContextPane",
+                  "parameters": {
+                    "isPrimary": true,
+                    "label": "Add Connector",
+                    "title": "Connect to ServiceNow",
+                    "contextPaneType": "DataConnectorsContextPane",
+                    "instructionSteps": [
+                      {
+                        "instructions": [
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "ServiceNow Instance Name",
+                              "placeholder": "my-instance",
+                              "name": "instance",
+                              "type": "string"
+                            }
+                          },
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "ServiceNow Username",
+                              "placeholder": "User Name",
+                              "name": "username",
+                              "type": "securestring"
+                            }
+                          },
+                          {
+                            "type": "Textbox",
+                            "parameters": {
+                              "label": "ServiceNow Password",
+                              "name": "password",
+                              "type": "password"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnectorDefinition')))]",
+      "apiVersion": "2022-01-01-preview",
+      "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+      "properties": {
+        "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectorDefinitions', variables('_dataConnectorContentIdConnectorDefinition'))]",
+        "contentId": "[variables('_dataConnectorContentIdConnectorDefinition')]",
+        "kind": "DataConnector",
+        "version": "[variables('dataConnectorVersionConnectorDefinition')]",
+        "source": {
+          "sourceId": "[variables('_solutionId')]",
+          "name": "[variables('_solutionName')]",
+          "kind": "Solution"
+        },
+        "author": {
+          "name": "[variables('_solutionAuthor')]"
+        },
+        "support": {
+          "name": "[variables('_solutionAuthor')]",
+          "tier": "[variables('_solutionTier')]"
+        },
+        "dependencies": {
+          "criteria": [
+            {
+              "version": "[variables('dataConnectorVersionConnections')]",
+              "contentId": "[variables('_dataConnectorContentIdConnections')]",
+              "kind": "ResourcesDataConnector"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentTemplates",
+      "apiVersion": "2023-04-01-preview",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('dataConnectorTemplateNameConnections'), variables('dataConnectorVersionConnections'))]",
+      "location": "[parameters('location')]",
+      "dependsOn": [
+        "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/contentPackages', variables('_solutionId'))]"
+      ],
+      "properties": {
+        "contentId": "[variables('_dataConnectorContentIdConnections')]",
+        "displayName": "[concat(variables('_solutionName'), variables('dataConnectorTemplateNameConnections'))]",
+        "contentKind": "ResourcesDataConnector",
+        "mainTemplate": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "[variables('dataConnectorVersionConnections')]",
+          "parameters": {
+            "connectorDefinitionName": {
+              "defaultValue": "connectorDefinitionName",
+              "type": "string",
+              "minLength": 1
+            },
+            "instance": {
+              "defaultValue": "instance",
+              "type": "string"
+            },
+            "username": {
+              "defaultValue": "username",
+              "type": "string"
+            },
+            "password": {
+              "defaultValue": "password",
+              "type": "securestring"
+            },
+            "workspace": {
+              "defaultValue": "[parameters('workspace')]",
+              "type": "string"
+            },
+            "dcrConfig": {
+              "defaultValue": {
+                "dataCollectionEndpoint": "data collection Endpoint",
+                "dataCollectionRuleImmutableId": "data collection rule immutableId"
+              },
+              "type": "object"
+            }
+          },
+          "variables": {
+            "_dataConnectorContentIdConnections": "[variables('_dataConnectorContentIdConnections')]"
+          },
+          "resources": [
+            {
+              "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat('DataConnector-', variables('_dataConnectorContentIdConnections')))]",
+              "apiVersion": "2022-01-01-preview",
+              "type": "Microsoft.OperationalInsights/workspaces/providers/metadata",
+              "properties": {
+                "parentId": "[extensionResourceId(resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspace')), 'Microsoft.SecurityInsights/dataConnectors', variables('_dataConnectorContentIdConnections'))]",
+                "contentId": "[variables('_dataConnectorContentIdConnections')]",
+                "kind": "ResourcesDataConnector",
+                "version": "[variables('dataConnectorVersionConnections')]",
+                "source": {
+                  "sourceId": "[variables('_solutionId')]",
+                  "name": "[variables('_solutionName')]",
+                  "kind": "Solution"
+                },
+                "author": {
+                  "name": "[variables('_solutionAuthor')]"
+                },
+                "support": {
+                  "name": "[variables('_solutionAuthor')]",
+                  "tier": "[variables('_solutionTier')]"
+                }
+              }
+            },
+            {
+              "type": "Microsoft.SecurityInsights/dataConnectors",
+              "apiVersion": "2022-10-01-preview",
+              "name": "ServiceNowDevicesPolling",
+              "kind": "RestApiPoller",
+              "properties": {
+                "connectorDefinitionName": "ServiceNowCCPDefinition",
+                "dataType": "ServiceNow Devices API",
+                "dcrConfig": {
+                  "streamName": "Custom-Custom_ServiceNowDevices_CL",
+                  "dataCollectionEndpoint": "[[parameters('dcrConfig').dataCollectionEndpoint]",
+                  "dataCollectionRuleImmutableId": "[[parameters('dcrConfig').dataCollectionRuleImmutableId]"
+                },
+                "auth": {
+                  "type": "Basic",
+                  "UserName": "[[parameters('username')]",
+                  "Password": "[[parameters('password')]"
+                },
+                "request": {
+                  "apiEndpoint": "[[concat('https://', parameters('instance'), '.service-now.com/api/sn_vul/attack_path/configuration_item')]",
+                  "httpMethod": "GET",
+                  "headers": {
+                    "Accept": "application/json"
+                  }
+                },
+                "paging": {
+                  "pagingType": "LinkHeader",
+                  "pageSize": 1000
+                },
+                "response": {
+                  "eventsJsonPaths": ["$.result.results"]
+                }
+              }
+            }
+          ]
+        },
+        "packageKind": "Solution",
+        "packageVersion": "[variables('_solutionVersion')]",
+        "packageName": "[variables('_solutionName')]",
+        "contentProductId": "[concat('azureservicenow.attackpath-solution-v1-rdc-123-DataConnector-', variables('_dataConnectorContentIdConnections'), '-', variables('dataConnectorVersionConnectorDefinition'))]",
+        "packageId": "[variables('_solutionId')]",
+        "contentSchemaVersion": "3.0.0",
+        "version": "[variables('_solutionVersion')]"
+      }
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces/providers/contentPackages",
+      "name": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/', variables('_solutionId'))]",
+      "location": "[parameters('location')]",
+      "apiVersion": "2023-04-01-preview",
+      "properties": {
+        "version": "[variables('_solutionVersion')]",
+        "kind": "Solution",
+        "contentSchemaVersion": "3.0.0",
+        "contentId": "[variables('_solutionId')]",
+        "source": {
+          "kind": "Solution",
+          "name": "[variables('_solutionName')]",
+          "sourceId": "[variables('_solutionId')]"
+        },
+        "author": {
+          "name": "[variables('_solutionAuthor')]"
+        },
+        "support": {
+          "name": "[variables('_solutionAuthor')]"
+        },
+        "dependencies": {
+          "operator": "AND",
+          "criteria": [
+            {
+              "kind": "DataConnector",
+              "contentId": "[variables('dataConnectorVersionConnectorDefinition')]",
+              "version": "[variables('_dataConnectorContentIdConnectorDefinition')]"
+            }
+          ]
+        },
+        "firstPublishDate": "2022-06-24",
+        "providers": ["[variables('_solutionAuthor')]"],
+        "contentKind": "Solution",
+        "packageId": "[variables('_solutionId')]",
+        "contentProductId": "[concat('azureservicenow.attackpath-solution-v1-sl-123-DataConnector-', variables('_solutionId'), '-', variables('_solutionVersion'))]",
+        "displayName": "[variables('_solutionName')]",
+        "publisherDisplayName": "[variables('_solutionId')]",
+        "descriptionHtml": "test",
+        "icon": "[variables('_packageIcon')]"
+      }
+    }
+  ]
+}
